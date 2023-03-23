@@ -1,29 +1,13 @@
 <template>
   <template v-if="getShow">
     <LoginFormTitle class="enter-x" />
-    <Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef">
+    <Form class="p-4 enter-x" :model="formData" :rules="rules" ref="formRef">
       <FormItem name="account" class="enter-x">
         <Input
           class="fix-auto-fill"
           size="large"
           v-model:value="formData.account"
           :placeholder="t('sys.login.userName')"
-        />
-      </FormItem>
-      <FormItem name="mobile" class="enter-x">
-        <Input
-          size="large"
-          v-model:value="formData.mobile"
-          :placeholder="t('sys.login.mobile')"
-          class="fix-auto-fill"
-        />
-      </FormItem>
-      <FormItem name="sms" class="enter-x">
-        <CountdownInput
-          size="large"
-          class="fix-auto-fill"
-          v-model:value="formData.sms"
-          :placeholder="t('sys.login.smsCode')"
         />
       </FormItem>
       <FormItem name="password" class="enter-x">
@@ -41,12 +25,13 @@
           :placeholder="t('sys.login.confirmPassword')"
         />
       </FormItem>
-
-      <FormItem class="enter-x" name="policy">
-        <!-- No logic, you need to deal with it yourself -->
-        <Checkbox v-model:checked="formData.policy" size="small">
-          {{ t('sys.login.policy') }}
-        </Checkbox>
+      <FormItem name="userCode" class="enter-x">
+        <Input
+          size="large"
+          visibilityToggle
+          v-model:value="formData.userCode"
+          :placeholder="'公司编号'"
+        />
       </FormItem>
 
       <Button
@@ -68,11 +53,12 @@
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue'
   import LoginFormTitle from './LoginFormTitle.vue'
-  import { Form, Input, Button, Checkbox } from 'ant-design-vue'
+  import { Form, Input, Button } from 'ant-design-vue'
   import { StrengthMeter } from '/@/components/StrengthMeter'
-  import { CountdownInput } from '/@/components/CountDown'
   import { useI18n } from '/@/hooks/web/useI18n'
-  import { useLoginState, useFormRules, useFormValid, LoginStateEnum } from './useLogin'
+  import { useLoginState, useFormValid, LoginStateEnum } from './useLogin'
+  import { userRegister } from '/@/api/user-center/register'
+  import { registerRules } from '/@/views/sys/login/userRegister'
 
   const FormItem = Form.Item
   const InputPassword = Input.Password
@@ -86,12 +72,10 @@
     account: '',
     password: '',
     confirmPassword: '',
-    mobile: '',
-    sms: '',
-    policy: false,
+    userCode: '',
   })
 
-  const { getFormRules } = useFormRules(formData)
+  const { rules } = registerRules(formData)
   const { validForm } = useFormValid(formRef)
 
   const getShow = computed(() => unref(getLoginState) === LoginStateEnum.REGISTER)
@@ -99,6 +83,17 @@
   async function handleRegister() {
     const data = await validForm()
     if (!data) return
+    try {
+      loading.value = true
+      await userRegister({
+        userAccount: formData.account,
+        userPassword: formData.password,
+        checkPassword: formData.confirmPassword,
+        userCode: formData.userCode,
+      })
+    } finally {
+      loading.value = false
+    }
     console.log(data)
   }
 </script>

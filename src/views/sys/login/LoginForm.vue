@@ -78,7 +78,9 @@
   import { useUserStore } from '/@/store/modules/user'
   import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin'
   import { useDesign } from '/@/hooks/web/useDesign'
+  import axios from 'axios'
   //import { onKeyStroke } from '@vueuse/core';
+  import { loginTest } from '/@/api/user-center/login'
 
   const ACol = Col
   const ARow = Row
@@ -97,8 +99,8 @@
   const rememberMe = ref(false)
 
   const formData = reactive({
-    account: 'vben',
-    password: '123456',
+    account: '',
+    password: '',
   })
 
   const { validForm } = useFormValid(formRef)
@@ -112,24 +114,29 @@
     if (!data) return
     try {
       loading.value = true
-      const userInfo = await userStore.login({
-        password: data.password,
-        username: data.account,
-        mode: 'none', //不要默认的错误提示
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      await loginTest({
+        userAccount: formData.account,
+        userPassword: formData.password,
       })
-      if (userInfo) {
-        notification.success({
-          message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
-          duration: 3,
-        })
-      }
-    } catch (error) {
-      createErrorModal({
-        title: t('sys.api.errorTip'),
-        content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
-        getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
-      })
+      //   const userInfo = await userStore.login({
+      //     password: formData.password,
+      //     username: formData.account,
+      //     mode: 'none', //不要默认的错误提示
+      //   })
+      //   if (userInfo) {
+      //     notification.success({
+      //       message: t('sys.login.loginSuccessTitle'),
+      //       description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
+      //       duration: 3,
+      //     })
+      //   }
+      // } catch (error) {
+      //   createErrorModal({
+      //     title: t('sys.api.errorTip'),
+      //     content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
+      //     getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
+      //   })
     } finally {
       loading.value = false
     }

@@ -43,12 +43,6 @@ export function useFormRules(formData?: Recordable) {
 
   const getAccountFormRule = computed(() => createRule(t('sys.login.accountPlaceholder')))
   const getPasswordFormRule = computed(() => createRule(t('sys.login.passwordPlaceholder')))
-  const getSmsFormRule = computed(() => createRule(t('sys.login.smsPlaceholder')))
-  const getMobileFormRule = computed(() => createRule(t('sys.login.mobilePlaceholder')))
-
-  const validatePolicy = async (_: RuleObject, value: boolean) => {
-    return !value ? Promise.reject(t('sys.login.policyPlaceholder')) : Promise.resolve()
-  }
 
   const validateConfirmPassword = (password: string) => {
     return async (_: RuleObject, value: string) => {
@@ -65,45 +59,43 @@ export function useFormRules(formData?: Recordable) {
   const getFormRules = computed((): { [k: string]: ValidationRule | ValidationRule[] } => {
     const accountFormRule = unref(getAccountFormRule)
     const passwordFormRule = unref(getPasswordFormRule)
-    const smsFormRule = unref(getSmsFormRule)
-    const mobileFormRule = unref(getMobileFormRule)
 
-    const mobileRule = {
-      sms: smsFormRule,
-      mobile: mobileFormRule,
-    }
     switch (unref(currentState)) {
       // register form rules
       case LoginStateEnum.REGISTER:
         return {
+          // @ts-ignore
           account: accountFormRule,
+          // @ts-ignore
           password: passwordFormRule,
           confirmPassword: [
             { validator: validateConfirmPassword(formData?.password), trigger: 'change' },
           ],
-          policy: [{ validator: validatePolicy, trigger: 'change' }],
-          ...mobileRule,
         }
 
       // reset password form rules
       case LoginStateEnum.RESET_PASSWORD:
         return {
+          // @ts-ignore
           account: accountFormRule,
-          ...mobileRule,
         }
 
       // mobile form rules
       case LoginStateEnum.MOBILE:
+        // @ts-ignore
         return mobileRule
 
       // login form rules
       default:
         return {
+          // @ts-ignore
           account: accountFormRule,
+          // @ts-ignore
           password: passwordFormRule,
         }
     }
   })
+
   return { getFormRules }
 }
 
