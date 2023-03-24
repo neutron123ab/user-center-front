@@ -48,9 +48,6 @@
       <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
         {{ t('sys.login.loginButton') }}
       </Button>
-      <!-- <Button size="large" class="mt-4 enter-x" block @click="handleRegister">
-        {{ t('sys.login.registerButton') }}
-      </Button> -->
     </FormItem>
     <ARow class="enter-x">
       <ACol :md="8" :xs="24">
@@ -69,26 +66,24 @@
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue'
 
-  import { Checkbox, Form, Input, Row, Col, Button } from 'ant-design-vue'
+  import { Checkbox, Form, Input, Row, Col, Button, notification } from 'ant-design-vue'
   import LoginFormTitle from './LoginFormTitle.vue'
 
   import { useI18n } from '/@/hooks/web/useI18n'
-  import { useMessage } from '/@/hooks/web/useMessage'
+
+  import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin'
 
   import { useUserStore } from '/@/store/modules/user'
-  import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin'
-  import { useDesign } from '/@/hooks/web/useDesign'
-  import axios from 'axios'
-  //import { onKeyStroke } from '@vueuse/core';
-  import { loginTest } from '/@/api/user-center/login'
+  import { userLogin } from '/@/api/user-center/login'
+  import { router } from '/@/router'
+  import { LoginResultModel } from '/@/api/user-center/model/loginModel'
+  import { PageEnum } from '/@/enums/pageEnum'
 
   const ACol = Col
   const ARow = Row
   const FormItem = Form.Item
   const InputPassword = Input.Password
   const { t } = useI18n()
-  const { notification, createErrorModal } = useMessage()
-  const { prefixCls } = useDesign('login')
   const userStore = useUserStore()
 
   const { setLoginState, getLoginState } = useLoginState()
@@ -105,8 +100,6 @@
 
   const { validForm } = useFormValid(formRef)
 
-  //onKeyStroke('Enter', handleLogin);
-
   const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
   async function handleLogin() {
@@ -114,31 +107,31 @@
     if (!data) return
     try {
       loading.value = true
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      await loginTest({
-        userAccount: formData.account,
+      const res = await userLogin({
         userPassword: formData.password,
+        userAccount: formData.account,
       })
-      //   const userInfo = await userStore.login({
-      //     password: formData.password,
-      //     username: formData.account,
-      //     mode: 'none', //不要默认的错误提示
-      //   })
-      //   if (userInfo) {
-      //     notification.success({
-      //       message: t('sys.login.loginSuccessTitle'),
-      //       description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
-      //       duration: 3,
-      //     })
-      //   }
-      // } catch (error) {
-      //   createErrorModal({
-      //     title: t('sys.api.errorTip'),
-      //     content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
-      //     getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
-      //   })
+      let userInfo: LoginResultModel = res.data.data
+      userStore.setToken(userInfo.id)
+      userStore.setUserInfo(userInfo)
+      if (userInfo) {
+        notification.success({
+          message: t('sys.login.loginSuccessTitle'),
+          //description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
+          duration: 3,
+        })
+        await router.replace(PageEnum.BASE_HOME)
+      }
+    } catch (error) {
+      // createErrorModal({
+      //   title: t('sys.api.errorTip'),
+      //   content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
+      //   getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
+      // })
     } finally {
       loading.value = false
+      formData.account = ''
+      formData.password = ''
     }
   }
 </script>

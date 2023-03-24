@@ -1,5 +1,4 @@
 import type { UserInfo } from '/#/store'
-import type { ErrorMessageMode } from '/#/axios'
 import { defineStore } from 'pinia'
 import { store } from '/@/store'
 import { RoleEnum } from '/@/enums/roleEnum'
@@ -14,8 +13,8 @@ import { router } from '/@/router'
 import { usePermissionStore } from '/@/store/modules/permission'
 import { RouteRecordRaw } from 'vue-router'
 import { PAGE_NOT_FOUND_ROUTE } from '/@/router/routes/basic'
-import { isArray } from '/@/utils/is'
 import { h } from 'vue'
+import { LoginResultModel } from '/@/api/user-center/model/loginModel'
 
 interface UserState {
   userInfo: Nullable<UserInfo>
@@ -85,16 +84,14 @@ export const useUserStore = defineStore({
     async login(
       params: LoginParams & {
         goHome?: boolean
-        mode?: ErrorMessageMode
       },
     ): Promise<GetUserInfoModel | null> {
       try {
-        const { goHome = true, mode, ...loginParams } = params
-        const data = await loginApi(loginParams, mode)
-        const { token } = data
-
+        const { goHome = true, ...loginParams } = params
+        const data = await loginApi(loginParams)
+        const username = data.username
         // save token
-        this.setToken(token)
+        this.setToken(username)
         return this.afterLoginAction(goHome)
       } catch (error) {
         return Promise.reject(error)
@@ -124,15 +121,9 @@ export const useUserStore = defineStore({
     },
     async getUserInfoAction(): Promise<UserInfo | null> {
       if (!this.getToken) return null
-      const userInfo = await getUserInfo()
-      const { roles = [] } = userInfo
-      if (isArray(roles)) {
-        const roleList = roles.map((item) => item.value) as RoleEnum[]
-        this.setRoleList(roleList)
-      } else {
-        userInfo.roles = []
-        this.setRoleList([])
-      }
+      const resp = await getUserInfo()
+      const userInfo: LoginResultModel = resp.data.data
+
       this.setUserInfo(userInfo)
       return userInfo
     },

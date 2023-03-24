@@ -1,9 +1,4 @@
-export interface LoginModel {
-  userAccount: string
-  userPassword: string
-}
-
-export interface LoginResultModel {
+export interface TableResultModel {
   id: string
   username: string
   userAccount: string

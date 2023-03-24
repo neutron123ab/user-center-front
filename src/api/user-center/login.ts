@@ -5,8 +5,9 @@ enum Api {
   LOGIN = '/user/login',
 }
 
-export const loginTest = (data: LoginModel) =>
-  defHttp.post<LoginModel>({
+export function userLogin(data: LoginModel) {
+  return defHttp.post({
     url: Api.LOGIN,
     data,
   })
+}

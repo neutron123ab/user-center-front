@@ -23,6 +23,7 @@
           visibilityToggle
           v-model:value="formData.confirmPassword"
           :placeholder="t('sys.login.confirmPassword')"
+          allow-clear
         />
       </FormItem>
       <FormItem name="userCode" class="enter-x">
@@ -53,7 +54,7 @@
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue'
   import LoginFormTitle from './LoginFormTitle.vue'
-  import { Form, Input, Button } from 'ant-design-vue'
+  import { Form, Input, InputPassword, Button, message } from 'ant-design-vue'
   import { StrengthMeter } from '/@/components/StrengthMeter'
   import { useI18n } from '/@/hooks/web/useI18n'
   import { useLoginState, useFormValid, LoginStateEnum } from './useLogin'
@@ -61,7 +62,6 @@
   import { registerRules } from '/@/views/sys/login/userRegister'
 
   const FormItem = Form.Item
-  const InputPassword = Input.Password
   const { t } = useI18n()
   const { handleBackLogin, getLoginState } = useLoginState()
 
@@ -93,6 +93,12 @@
       })
     } finally {
       loading.value = false
+      message.success('注册成功')
+      formData.account = ''
+      formData.password = ''
+      formData.confirmPassword = ''
+      formData.userCode = ''
+      handleBackLogin()
     }
     console.log(data)
   }
